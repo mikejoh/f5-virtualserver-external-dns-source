@@ -4,7 +4,7 @@ This repository can be used as inspiration for adding a new `external-dns` sourc
 
 In this proof-of-concept i've created a new source to create DNS records based on F5 Networks `VirtualServer` CRDs. There's two fields in the `VirtualServer` CRD that is of interest, the `host` and the `virtualServerAddress` fields.
 
-To test this out i build `external-dns` locally and create a `kind` cluster, when i start `external-dns` locally it'll connect to the `kind` cluster and start to watch for `VirtalServer` CRDs.
+To test this out i build `external-dns` locally and create a `kind` cluster, when i start `external-dns` locally it'll connect to the `kind` cluster and start to watch for `VirtualServer` CRDs.
 
 One awesome feature in `external-dns` is that you can use the `inmemory` provider to store DNS records in memory, you don't need something live to connect to. Useful to do some manual testing of `external-dns`.
 
