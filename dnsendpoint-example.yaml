@@ -1,0 +1,11 @@
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: example-dnsendpoint
+spec:
+  endpoints:
+  - dnsName: www2.example.com
+    recordTTL: 180
+    recordType: A
+    targets:
+      - 192.168.1.11
