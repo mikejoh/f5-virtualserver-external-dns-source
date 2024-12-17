@@ -1,1 +1,0 @@
-main.go:34:2: importShadow: shadow of imported from 'k8s.io/kubectl/pkg/scheme' package 'scheme' (gocritic)

@@ -87,7 +87,15 @@ cd ipam-controller
 go run main.go
 ```
 
-This will update the `status` field of the `VirtualServer` called `example-vs-ipam` in the `default` namespace.
+or with flags:
+
+```bash
+cd ipam-controller
+go run main.go -namespace "default" -vs-name "example-vs-ipam" -vs-address "192.168.1.101" -status "Ok"
+go run main.go -namespace "default" -vs-name "example-vs-ipam" -vs-address "" -status "Error"
+```
+
+This will update the `status` field of the `VirtualServer` called `example-vs-ipam` in the `default` namespace. With the flags you can reconfigure the `status` field as it would've been done when running a real `ipam-controller`.
 
 ### 2024-12-17
 
