@@ -1,4 +1,4 @@
-# Proof-of-concept: Add a new external-dns source
+# Testing and developing the `f5-virtualserver` source in `external-dns`
 
 This repository can be used as inspiration for adding a new `external-dns` source, basically a source to use when creating DNS records in a specific provider e.g. AWS (Route 53) or Designate (OpenStack).
 
@@ -8,29 +8,37 @@ To test this out i build `external-dns` locally and create a `kind` cluster, whe
 
 One awesome feature in `external-dns` is that you can use the `inmemory` provider to store DNS records in memory, you don't need something live to connect to. Useful to do some manual testing of `external-dns`.
 
+_Please note that the `f5-virtualserver` source will enumerate all `VirtualServers` in the cluster, some virtual servers will have a static IP address assigned others through an IPAM controller that writes the IP address in the status field of the `VirtualServer`. The `ipam-controller` directory in this repository includes code to do exactly that, write to the status field. This code can be used to test both scenarios._
+
 ## Step-by-step
-1. Clone my `external-dns` fork:
+
+1. Clone your `external-dns` fork.
+
+2. Checkout your feature branch.
+
+3. Create the `kind` cluster:
+
+```bash
+kind create cluster --config=dev-cluster.yaml
 ```
-git clone https://github.com/mikejoh/external-dns.git 
-``` 
-2. Checkout my feature branch:
+
+4. Install the CRDs shipped from F5 Networks (defined as part of the `k8s-bigip-ctlr` repository):
+
+```bash
+kubectl create -f https://raw.githubusercontent.com/F5Networks/k8s-bigip-ctlr/refs/heads/master/docs/cis-20.x/config_examples/customResourceDefinitions/stable/customresourcedefinitions.yml
 ```
-git checkout add-f5-virtualserver-source
-```
-3. Build `external-dns`:
-```
+
+5. Build `external-dns` locally:
+
+```bash
 make build
 ```
-4. Create the `kind` cluster:
-```
-kind create cluster --config=external-dns-cluster.yaml
-```
-4. Install the CRDs shipped from F5 Networks (defined as part of the `k8s-bigip-ctlr` repository):
-```
-kubectl create -f https://raw.githubusercontent.com/F5Networks/k8s-bigip-ctlr/master/docs/config_examples/customResourceDefinitions/customresourcedefinitions.yml
-```
-5. Start `external-dns` locally:
-```
+
+## Testing with a `VirtualServer` with a static IP address configured
+
+1. Start `external-dns`:
+
+```bash
 ./build/external-dns \
   --source=f5-virtualserver \
   --provider=inmemory \
@@ -41,20 +49,62 @@ kubectl create -f https://raw.githubusercontent.com/F5Networks/k8s-bigip-ctlr/ma
   --txt-owner-id=external-dns-cluster \
   --domain-filter=example.com
 ```
-6. Create a `VirtualServer` object:
-```
-kubectl create -f f5-virtual-server-example.yaml
+
+2. Create the `VirtualServer` object:
+
+```bash
+kubectl create -f virtualserver-static.yaml
 ```
 
-You'll see `external-dns` create records in the `inmemory` provider by watching the standard output of the `external-dns` binary.
+3. See the logs of `external-dns`.
 
-If you want to test the `crd` source, which watches for `DNSEndpoint` CRDs (provided by `external-dns`):
+## Testing with a `VirtualServer` with a dynamically configured IP address (via the included fake `ipam-controller`)
+
+1. Start `external-dns`:
+
+```bash
+./build/external-dns \
+  --source=f5-virtualserver \
+  --provider=inmemory \
+  --log-level=debug \
+  --policy=upsert-only \
+  --registry=txt \
+  --interval=1m \
+  --txt-owner-id=external-dns-cluster \
+  --domain-filter=example.com
+```
+
+2. Create the `VirtualServer` object:
+
+```bash
+kubectl create -f virtualserver-ipam.yaml
+```
+
+3. Run the fake `ipam-controller`:
+
+```bash
+cd ipam-controller
+go run main.go
+```
+
+This will update the `status` field of the `VirtualServer` called `example-vs-ipam` in the `default` namespace.
+
+### 2024-12-17
+
+We're not handling cases when the `status.status` field of the `VirtualServer` is not `Ok` e.g. `""` or `ERROR` which means that we don't exit early in the `f5-virtualserver` source. If we end up with a status of e.g. `ERROR` `external-dns` will still try to create a record AND upsert (basically removing the old one), the record it tries to create is of type CNAME, which is valid and it makes sense.
+
+## Testing with the `DNSEndpoint` CRD
+
+You'll see `external-dns` create records in the `inmemory` provider by watching the standard output of the `external-dns` binary. If you want to test the `crd` source, which watches for `DNSEndpoint` CRDs (provided by `external-dns`):
+
 1. Install the CRD:
-```
+
+```bash
 kubectl create -f https://raw.githubusercontent.com/kubernetes-sigs/external-dns/master/docs/contributing/crd-source/crd-manifest.yaml
 ```
-2. Create a `DNSEndpoint` object:
-```
-kubectl create -f dnsendpoint-example.yaml
-```
 
+2. Create a `DNSEndpoint` object:
+
+```bash
+kubectl create -f dnsendpoint.yaml
+```

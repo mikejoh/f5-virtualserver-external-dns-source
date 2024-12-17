@@ -3,7 +3,7 @@ kind: VirtualServer
 metadata:
   labels:
     f5cr: "true"
-  name: virtual-server-example
+  name: example-vs-static
 spec:
   host: www.example.com
   pools:
