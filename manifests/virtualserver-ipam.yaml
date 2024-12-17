@@ -5,7 +5,7 @@ metadata:
     f5cr: "true"
   name: example-vs-ipam
 spec:
-  host: www.example.com
+  host: www2.example.com
   ipamLabel: test
   pools:
     - monitor:
