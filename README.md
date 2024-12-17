@@ -4,7 +4,7 @@ This repository can be used as inspiration for adding a new `external-dns` sourc
 
 In this sandbox i've created a new source to create DNS records based on F5 Networks `VirtualServer` CRDs. There's two fields in the `VirtualServer` CRD that is of interest, the `host` and the `virtualServerAddress` fields.
 
-To test this out i've build `external-dns` locally and create a `kind` cluster, when i start `external-dns` locally it'll connect to the `kind` cluster and start to watch for `VirtualServer` CRDs.
+To test this out i've build `external-dns` locally and create a `kind` cluster, when i start `external-dns` locally it'll connect to the `` cluster and start to watch for `VirtualServer` CRDs.
 
 One awesome feature in `external-dns` is that you can use the `inmemory` provider to store DNS records in memory, you don't need something live to connect to. Useful to do some manual testing of `external-dns`.
 
@@ -19,7 +19,7 @@ _Please note that the `f5-virtualserver` source will enumerate all `VirtualServe
 3. Create the `kind` cluster:
 
 ```bash
-kind create cluster --config=dev-cluster.yaml
+kind create cluster --config=kind/dev-cluster.yaml
 ```
 
 4. Install the CRDs shipped from F5 Networks (defined as part of the `k8s-bigip-ctlr` repository):
@@ -53,7 +53,7 @@ make build
 2. Create the `VirtualServer` object:
 
 ```bash
-kubectl create -f virtualserver-static.yaml
+kubectl create -f manifests/virtualserver-static.yaml
 ```
 
 3. See the logs of `external-dns`.
@@ -77,7 +77,7 @@ kubectl create -f virtualserver-static.yaml
 2. Create the `VirtualServer` object:
 
 ```bash
-kubectl create -f virtualserver-ipam.yaml
+kubectl create -f manifests/virtualserver-ipam.yaml
 ```
 
 3. Run the `vs-status-updater`, without flags accepting the sane defaults:
@@ -118,5 +118,5 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes-sigs/external-dns
 2. Create a `DNSEndpoint` object:
 
 ```bash
-kubectl create -f dnsendpoint.yaml
+kubectl create -f manifests/dnsendpoint.yaml
 ```
