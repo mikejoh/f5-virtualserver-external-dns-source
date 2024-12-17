@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
+	"log/slog"
 	"path/filepath"
 
 	"k8s.io/client-go/tools/clientcmd"
@@ -41,8 +41,7 @@ func main() {
 
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		fmt.Printf("Error building kubeconfig: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error building kubeconfig: %v\n", err)
 	}
 
 	scheme := scheme.Scheme
@@ -50,37 +49,39 @@ func main() {
 		log.Fatalf("Error adding CRD to scheme: %v\n", err)
 	}
 
-	c, err := client.New(config, client.Options{
-		Scheme: scheme,
-	})
+	c, err := client.New(config, client.Options{Scheme: scheme})
 	if err != nil {
 		log.Fatalf("Error creating client: %v\n", err)
 	}
 
-	vs := f5.VirtualServer{}
-	vsName := opts.vsName
-	namespace := opts.namespace
+	err = updateStatus(context.Background(), c, opts.vsAddress, opts.vsName, opts.namespace, opts.status)
 
-	err = c.Get(context.TODO(), client.ObjectKey{
+	slog.Info("updated status of F5 VirtualServer CRD", "status", opts.status, "vsAddress", opts.vsAddress, "vsName", opts.vsName, "namespace", opts.namespace)
+}
+
+func updateStatus(ctx context.Context, c client.Client, vsAddress, vsName, namespace, status string) error {
+	vs := f5.VirtualServer{}
+
+	err := c.Get(ctx, client.ObjectKey{
 		Namespace: namespace,
 		Name:      vsName,
 	}, &vs)
 	if err != nil {
-		log.Fatalf("Error fetching CRD: %v\n", err)
+		return fmt.Errorf("error getting CRD: %v", err)
 	}
 
-	status := f5.VirtualServerStatus{
-		VSAddress: opts.vsAddress,
-		Status:    opts.status,
+	vsStatus := f5.VirtualServerStatus{
+		VSAddress: vsAddress,
+		Status:    status,
 		Error:     "",
 	}
 
-	vs.Status = status
+	vs.Status = vsStatus
 
 	err = c.Status().Update(context.TODO(), &vs, &client.SubResourceUpdateOptions{})
 	if err != nil {
-		log.Fatalf("Error updating CRD: %v\n", err)
+		return fmt.Errorf("error updating CRD: %v", err)
 	}
 
-	fmt.Printf("Updated CRD with status: %v\n", vs.Status)
+	return nil
 }
