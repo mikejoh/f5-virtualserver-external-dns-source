@@ -1,4 +1,4 @@
-module github.com/mikejoh/ipam-controller
+module github.com/mikejoh/vs-status-updater
 
 go 1.23.2
 
