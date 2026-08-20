@@ -1,5 +1,7 @@
 # The `f5-virtualserver` source sandbox
 
+[![CI](https://github.com/mikejoh/f5-virtualserver-external-dns-source/actions/workflows/go.yml/badge.svg)](https://github.com/mikejoh/f5-virtualserver-external-dns-source/actions/workflows/go.yml)
+
 This repository can be used as inspiration for adding a new `external-dns` source, basically a source to use when creating DNS records in a specific provider e.g. AWS (Route 53) or Designate (OpenStack).
 
 In this sandbox i've created a new source to create DNS records based on F5 Networks `VirtualServer` CRDs. There's two fields in the `VirtualServer` CRD that is of interest, the `host` and the `virtualServerAddress` fields.
