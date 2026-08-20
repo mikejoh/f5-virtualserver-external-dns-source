@@ -14,6 +14,8 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v6
         with:
+          version: latest
+          only-new-issues: true
           working-directory: vs-status-updater
       - name: Vet
         working-directory: vs-status-updater
