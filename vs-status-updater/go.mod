@@ -6,7 +6,7 @@ require (
 	github.com/F5Networks/k8s-bigip-ctlr/v2 v2.18.1
 	k8s.io/client-go v0.37.1
 	k8s.io/kubectl v0.37.1
-	sigs.k8s.io/controller-runtime v0.25.2
+	sigs.k8s.io/controller-runtime v0.25.3
 )
 
 require (
